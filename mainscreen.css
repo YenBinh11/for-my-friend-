@@ -1,0 +1,42 @@
+/* ==================== HIỆU ỨNG HOVER BAO TRỌN CHỮ VÀ NHẤP NHÁY ==================== */
+        .menu-btn-wrapper {
+            position: relative;
+            width: fit-content;
+            padding: 6px 14px; /* Tạo khoảng đệm vừa vặn bao trọn chữ */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .menu-btn {
+            background: none; border: none;
+            color: #ffffff; font-size: 1.4rem; letter-spacing: 3px;
+            text-align: left; cursor: pointer; padding: 0; font-weight: 500;
+            text-transform: uppercase; 
+            position: relative; 
+            z-index: 3; /* ĐẤY CHỮ LÊN TRÊN CÙNG ĐỂ KHÔNG BỊ KHỐI XANH CHE MẤT */
+            pointer-events: none; /* Để sự kiện hover ăn mượt vào lớp wrapper ngoài */
+        }
+
+        .menu-btn-wrapper .hover-block {
+            position: absolute;
+            inset: 0; 
+            width: 100%;
+            height: 100%;
+            background-color: #00766b; /* Màu xanh teal nguyên bản của ông */
+            z-index: 2; /* NẰM DƯỚI TEXT NHƯNG TRÊN BACKGROUND */
+            opacity: 0; 
+            pointer-events: none;
+        }
+
+        /* Khi di chuột vào wrapper: Kích hoạt hiệu ứng nhấp nháy liên tục */
+        .menu-btn-wrapper:hover .hover-block {
+            animation: tealBlink 0.3s infinite steps(2, start);
+        }
+
+        /* Định nghĩa hành động nhấp nháy chớp tắt dứt khoát */
+        @keyframes tealBlink {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }

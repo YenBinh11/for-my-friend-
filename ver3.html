@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GAME OF THORNS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            margin: 0; padding: 0;
+            background-color: #000;
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; overflow: hidden;
+        }
+
+        /* ==================== KHUNG TRÌNH DUYỆT GIẢ LẬP (MOCKUP BROWSER) ==================== */
+        #browser-mockup {
+            width: 100%;
+            max-width: 1024px; /* Khớp hoàn hảo với chiều ngang game */
+            margin: 20px;
+            background: #111;
+            border: 1px solid #2e3a35;
+            border-radius: 12px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* Thanh tiêu đề giả lập */
+        .browser-header {
+            height: 40px;
+            background: #161d1a;
+            border-bottom: 1px solid #2e3a35;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 15px;
+            user-select: none;
+        }
+
+        /* 3 nút chấm tròn kiểu Mac */
+        .browser-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        .browser-buttons .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .browser-buttons .red { background: #ff5f56; }
+        .browser-buttons .yellow { background: #ffbd2e; }
+        .browser-buttons .green { background: #27c93f; }
+
+        /* Thanh gõ URL phong cách hacker/huyền bí */
+        .browser-search-bar {
+            background: #090d0b;
+            color: #558877;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.85rem;
+            padding: 4px 25px;
+            border-radius: 20px;
+            width: 45%;
+            text-align: center;
+            border: 1px solid #1f2924;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        .browser-actions { color: #558877; font-size: 0.9rem; display: flex; gap: 10px; }
+
+        /* ==================== KHUNG ĐỒ HỌA CHUẨN MÀN HÌNH 16:9 ==================== */
+        .game-viewport {
+            width: 100% !important;
+            aspect-ratio: 16 / 9;
+            position: relative !important;
+            overflow: hidden;
+            background: #000;
+            border-radius: 0 0 12px 12px;
+        }
+
+        .game-bg {
+            position: absolute; inset: 0;
+            width: 100%; height: 100%;
+            object-fit: cover; z-index: 1;
+        }
+
+        .hidden { display: none !important; }
+
+        /* ==================== MÀN HÌNH CHÍNH (MAIN MENU) ==================== */
+        .menu-screen {
+            position: absolute; inset: 0; z-index: 10;
+            display: flex; flex-direction: column; justify-content: center;
+            padding-left: 6.5%; box-sizing: border-box;
+        }
+
+        .menu-btn-group {
+            display: flex; flex-direction: column; 
+            gap: 20px;          /* SỬA: Giảm khoảng cách giữa 2 nút một chút cho cân đối */
+            margin-top: 110px;
+        }
+
+        .menu-btn-wrapper {
+            position: relative;
+            width: fit-content;
+            display: flex;      /* THÊM: Để căn thẳng hàng nút và khối hover-block */
+            align-items: center;/* THÊM: Căn giữa theo chiều dọc */
+        }
+
+        .menu-btn {
+            background: #000000; /* SỬA: Từ 'none' thành màu đen đặc để bọc chữ */
+            border: 1px solid transparent; /* SỬA: Tạo sẵn viền suốt để khi hover không bị giật khung */
+            color: #ffffff;      /* SỬA: Đổi màu chữ sang trắng tinh cho nổi bật */
+            font-size: 1.4rem; letter-spacing: 3px;
+            text-align: left; cursor: pointer; 
+            padding: 12px 30px 12px 20px; /* SỬA: Thêm khoảng đệm bên trong khối đen */
+            font-weight: 600;    /* SỬA: Tăng độ đậm chữ lên một chút */
+            text-transform: uppercase; position: relative; z-index: 2;
+            min-width: 180px;    /* THÊM: Giới hạn độ rộng tối thiểu để khối đen bao quanh đẹp mắt */
+            transition: all 0.25s ease-out; /* THÊM: Tạo hiệu ứng dịch chữ mượt mà */
+        }
+
+        /* Khối chứa mũi tên ẩn (Thay thế hoàn toàn hover-block thanh ngang cũ) */
+        .menu-btn-wrapper .hover-block {
+            position: absolute;
+            left: 10px;          /* SỬA: Đặt vị trí ban đầu ở rìa trái */
+            bottom: auto;        /* SỬA: Bỏ dính đáy */
+            width: auto;         /* SỬA: Bỏ chiều rộng cố định */
+            height: auto;        /* SỬA: Bỏ chiều cao cố định */
+            background-color: transparent; /* SỬA: Bỏ nền xanh teal cũ */
+            z-index: 3;
+            opacity: 0;          /* THÊM: Ẩn mũi tên đi khi chưa hover */
+            color: #ffffff;      /* THÊM: Màu của mũi tên */
+            font-size: 1.4rem;   /* THÊM: Độ to của mũi tên bằng font chữ nút */
+            font-weight: bold;
+            transition: all 0.25s ease-out; /* THÊM: Tạo hiệu ứng trượt mượt */
+            pointer-events: none;
+        }
+
+        /* THÊM: Gán ký tự mũi tên ">" vào hover-block mà không cần sửa HTML */
+        .menu-btn-wrapper .hover-block::before {
+            content: "▶";
+        }
+
+        /* HIỆU ỨNG KHI HOVER (DI CHUỘT VÀO) */
+        
+        /* 1. Khi hover vào wrapper, nút menu bên trong thay đổi */
+        .menu-btn-wrapper:hover .menu-btn {
+            border: 1px solid rgba(255, 255, 255, 0.8); /* THÊM: Hiện line viền trắng sắc nét */
+            padding-left: 35px; /* THÊM: Đẩy chữ sang phải nhường chỗ cho mũi tên */
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.15); /* THÊM: Hiệu ứng ánh sáng mờ bao quanh */
+        }
+
+        /* 2. Khi hover vào wrapper, mũi tên trượt ra và hiện hình */
+        .menu-btn-wrapper:hover .hover-block {
+            display: block;      /* Giữ nguyên */
+            opacity: 1;          /* THÊM: Hiện rõ mũi tên */
+            left: 18px;          /* THÊM: Đẩy mũi tên trượt nhẹ vào trước chữ */
+        }
+        /* ==================== MÀN HÌNH CHƠI GAME VN ==================== */
+        .vn-screen { position: absolute; inset: 0; z-index: 5; }
+
+        .sprite-character {
+            position: absolute; bottom: 80px; left: 8%;
+            height: 68%; object-fit: contain; z-index: 2;
+            transition: src 0.2s ease-in-out;
+        }
+
+        .dialogue-container {
+            position: absolute;
+            bottom: 4%; left: 50%; transform: translateX(-50%);
+            width: 90%; 
+            
+            /* SỬA TẠI ĐÂY: Hạ chiều cao xuống một chút để đỡ che nhân vật, dùng đen đặc */
+            height: 24%;                 /* Giảm từ 28% xuống 24% giúp hộp thoại gọn hơn */
+            background: #000000 !important; /* Đen đặc hoàn toàn */
+            border: 1px solid rgba(255, 255, 255, 0.15); /* Viền trắng mờ nhẹ */
+            
+            z-index: 3; box-sizing: border-box;
+            padding: 18px 35px;          /* GIẢM PADDING: Tăng thêm không gian chứa chữ bên trong */
+        }
+
+        .speaker-box {
+            font-weight: 600; font-style: italic; 
+            font-size: 1.05rem;          /* SỬA: Thu nhỏ tên nhân vật một chút (gốc 1.15rem) */
+            color: #ffffff; 
+            margin-bottom: 8px;          /* SỬA: Giảm khoảng cách xuống dòng */
+            letter-spacing: 1px;
+        }
+
+        .text-box {
+            /* KHU VỰC THU NHỎ CỠ CHỮ THOẠI */
+            font-size: 0.95rem;          /* SỬA: Hạ cỡ chữ xuống (gốc 1.1rem), chữ sẽ nhỏ và vừa vặn */
+            line-height: 1.5;            /* Điều chỉnh khoảng cách dòng vừa phải */
+            color: #ffffff; 
+            letter-spacing: 0.5px;
+            white-space: normal;
+            word-wrap: break-word;
+        }
+        .text-box .highlight { color: #00ffcc; font-weight: 600; }
+
+        .choices-container {
+            position: absolute;
+            right: 5%; bottom: 34%;      /* SỬA: Cân lại vị trí nút lựa chọn theo chiều cao hộp thoại mới */
+            width: 35%; display: flex; flex-direction: column; gap: 14px;
+            z-index: 4;
+        }
+
+        .choice-item-btn {
+            background: rgba(4, 20, 17, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            color: #ffffff; font-size: 0.95rem; font-style: italic;
+            padding: 10px 18px; text-align: left;
+            cursor: pointer; display: flex; align-items: center; gap: 12px;
+            position: relative;
+        }
+        .choice-item-btn::before {
+            content: '▶'; color: #ffffff; font-size: 0.8rem;
+            position: absolute; left: -25px; opacity: 0;
+            transition: opacity 0.1s;
+        }
+        .choice-item-btn:hover::before { opacity: 1; }
+        .choice-item-btn .highlight-choice { color: #00ffcc; }
+        /* ==================== POP-UP VẬT PHẨM ==================== */
+        .item-popup-overlay {
+            position: absolute; inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 15;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center; gap: 15px;
+        }
+
+        .custom-item-card {
+            width: 310px; background-color: #041411; border: 2px solid #ffffff;
+            box-sizing: border-box; display: flex; flex-direction: column; overflow: hidden;
+        }
+
+        .item-image-area {
+            height: 210px; display: flex; justify-content: center; align-items: center; padding: 15px; box-sizing: border-box;
+        }
+        .item-image-area img { height: 80%; object-fit: contain; }
+
+        .item-name-bar {
+            background-color: #ffffff; color: #000000; text-align: center; padding: 6px 0; 
+            font-size: 1rem; letter-spacing: 1px; font-weight: bold;
+            font-family: 'Times New Roman', Times, serif;
+        }
+
+        .item-desc-area { padding: 20px; box-sizing: border-box; min-height: 110px; }
+        .item-desc-text { color: #ffffff; font-size: 0.95rem; line-height: 1.6; text-align: left; letter-spacing: 0.5px; margin: 0; }
+
+        .thanks-action-btn {
+            width: 310px; background-color: #041411; border: 2px solid #ffffff; color: #ffffff;
+            font-size: 1rem; font-style: italic; padding: 10px 15px; text-align: left; cursor: pointer;
+            box-sizing: border-box; letter-spacing: 1px; position: relative;
+        }
+        .thanks-action-btn::before {
+            content: '▶'; position: absolute; left: -22px; top: 50%; transform: translateY(-50%); color: #ffffff; font-size: 0.75rem; opacity: 0;
+        }
+        .thanks-action-btn:hover::before { opacity: 1; }
+        .thanks-action-btn:hover { background-color: #0c332b; }
+
+        /* ==================== MÀN HÌNH GLITCH HỆ THỐNG ==================== */
+        .glitch-screen { position: absolute; inset: 0; z-index: 20; }
+        .glitch-fix-btn {
+            position: absolute;
+            bottom: 33.5%; left: 11%; width: 20%; height: 7%;
+            cursor: pointer; background: none; border: none; color: transparent;
+        }
+        .progress-bar-container {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .progress-bar-fill {
+            width: 35%; height: 100%; background-color: #17302b;
+            animation: fakeLoading 4s infinite linear;
+        }
+        @keyframes fakeLoading {
+            0% { width: 0%; } 50% { width: 45%; } 80% { width: 70%; } 100% { width: 100%; }
+        }
+
+        /* ==================== MÀN HÌNH CON CHUỘT & CREDIT ==================== */
+        .full-image-screen { position: absolute; inset: 0; z-index: 25; }
+        
+        .back-main-link {
+            position: absolute; bottom: 6%; right: 6%;
+            color: #ffffff; font-size: 0.95rem; font-style: italic; letter-spacing: 1px;
+            cursor: pointer; text-decoration: none; z-index: 30;
+        }
+        .back-main-link:hover { text-decoration: underline; }
+
+        /* Hiệu ứng nhấp nháy thuần túy */
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.2; }
+        }
+        /* ==================== GRAPHICS FOR CREDIT SCREEN ==================== */
+        .credit-screen-container {
+            position: absolute; inset: 0; z-index: 25;
+            box-sizing: border-box;
+            padding: 5% 6.5%;
+        }
+
+        .credit-content-wrapper {
+            position: relative;
+            z-index: 2;
+            max-width: 80%; /* Giới hạn độ rộng để nhường không gian bên phải cho chú mèo */
+            margin-left: 30%;
+        }
+
+        .credit-title {
+            font-size: 1.8rem;
+            margin: 0 0 10px 0;
+            letter-spacing: 2px;
+            color: #ffffff;
+            font-weight: 500;
+        }
+
+        /* Thanh chữ nhật xanh teal dưới chữ Credit */
+        .credit-decor-line {
+            width: 140px;
+            height: 12px;
+            background-color: #00766b;
+            margin-bottom: 30px;
+        }
+
+        .credit-text-body {
+            font-size: 0.88rem;
+            line-height: 1.5;
+            color: #e0f3ee;
+        }
+
+        .credit-text-body h3 {
+            color: #ffffff;
+            font-size: 1.05rem;
+            margin-top: 0;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+
+        .credit-text-body p { margin: 2px 0; }
+
+        .credit-quote {
+            font-style: italic;
+            color: #ffffff;
+            font-weight: 500;
+            padding-left: 10px;
+            border-left: 2px solid #197461;
+            margin: 6px 0 !important;
+        }
+
+        .credit-text-body ul {
+            margin: 4px 0;
+            padding-left: 0px;
+            list-style-type: none; /* Ẩn dấu chấm tròn mặc định để giống ảnh mẫu */
+        }
+
+        .credit-text-body ul li {
+            position: relative;
+            margin-bottom: 4px;
+        }
+
+        .credit-highlight-cyan {
+            color: #32bb8d !important;
+            font-weight: 600;
+            margin-top: 10px !important;
+        }
+
+        /* Vị trí chuẩn cho icon chú mèo góc dưới bên phải */
+        .credit-cat-icon {
+            position: absolute;
+            right: 6%;
+            bottom: 10%;
+            width: 195px; /* Tự động co giãn theo tỷ lệ */
+            height: auto;
+            z-index: 2;
+            background: #222; /* Lớp nền dự phòng nếu ảnh mèo bị trong suốt */
+        }
+
+        /* Nút Back to the main screen */
+        .back-to-menu-btn {
+            position: absolute;
+            bottom: 4%;
+            right: 2%;
+            background: none;
+            border: none;
+            color: #c6f2eb;
+            font-size: 0.6rem;
+            font-style: ital6ic;
+            letter-spacing: 1px;
+            cursor: pointer;
+            z-index: 30;
+            font-family: 'Inter', sans-serif;
+            transition: opacity 0.2s;
+        }
+
+        .back-to-menu-btn:hover {
+            text-decoration: underline;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+
+<div id="browser-mockup">
+    
+    <div class="browser-header">
+        <div class="browser-buttons">
+            <span class="dot red"></span>
+            <span class="dot yellow"></span>
+            <span class="dot green"></span>
+        </div>
+        <div class="browser-search-bar">
+            <span>https://egotist-system.com/game-of-thorns</span>
+        </div>
+        <div class="browser-actions">
+            <span>—</span>
+            <span>❑</span>
+            <span>✕</span>
+        </div>
+    </div>
+
+    <div class="game-viewport">
+        
+        <div id="scr-rotate" class="menu-screen hidden">
+            <div style="text-align: center; padding: 20px; width: 100%;">
+                <p style="font-size: 1.5rem; font-weight: 600; margin-bottom: 10px;">Vui lòng xoay ngang điện thoại</p>
+                <p style="color: #e7fffa; font-style: italic; margin: 0;">Để có trải nghiệm game tốt nhất</p>
+            </div>
+        </div>
+
+        <div id="scr-headphone" class="menu-screen hidden">
+            <img src="loading-bg.png" class="game-bg" alt="Loading Background">
+            <div style="position: absolute; inset: 0; z-index: 2; cursor: pointer;" onclick="initGameAudio()">
+                <p style="position: absolute; bottom: 18%; left: 50%; transform: translateX(-50%); color: #b6ebe0; font-size: 0.75rem; font-style: italic; margin: 0; letter-spacing: 1px; animation: blink 1.5s infinite; white-space: nowrap;">
+                    Click to continue
+                </p>
+            </div>
+        </div>
+
+        <audio id="game-bgm" src="bgm.mp3" loop></audio>
+        
+        <div id="scr-loading" class="menu-screen hidden">
+            <img src="loading-bg.png" class="game-bg" alt="Loading Background">
+            <div class="loading-content"></div>
+        </div>
+
+        <div id="scr-menu" class="menu-screen hidden">
+            <img src="main-bg.png" class="game-bg" alt="Menu Background">
+            <div class="menu-btn-group">
+                <div class="menu-btn-wrapper">
+                    <button class="menu-btn" onclick="triggerGameStart()">GAME ON</button>
+                    <div class="hover-block"></div>
+                </div>
+                <div class="menu-btn-wrapper">
+                    <button class="menu-btn" onclick="openScreen('scr-credit', 'He (10).jpg')">CREDIT</button>
+                    <div class="hover-block"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="scr-vn" class="vn-screen hidden">
+            <img src="gameplay-bg.png" class="game-bg" alt="Gameplay Background">
+            <img id="kurisu-sprite" src="kurisu.png" class="sprite-character" alt="Kurisu">
+            <div id="choices-box" class="choices-container"></div>
+            <div class="dialogue-container">
+                <div class="speaker-box">Kurisu</div>
+                <div id="dialogue-text" class="text-box"></div>
+            </div>
+        </div>
+
+        <div id="popup-gift" class="item-popup-overlay hidden">
+            <div class="custom-item-card">
+                <div class="item-image-area">
+                    <img src="Omomari.png" alt="Item">
+                </div>
+                <div id="item-title-bar" class="item-name-bar">- vật phẩm mới -</div>
+                <div class="item-desc-area">
+                    <p id="item-desc-content" class="item-desc-text">Mô tả...</p>
+                </div>
+            </div>
+            <button class="thanks-action-btn" onclick="openScreen('scr-glitch', 'He (6).png')">Cảm ơn vì món quà</button>
+        </div>
+
+        <div id="scr-glitch" class="glitch-screen hidden">
+            <button class="glitch-fix-btn" onclick="openScreen('scr-mouse', 'He (7).png')"></button>
+            <div class="progress-bar-container"><div class="progress-bar-fill"></div></div>
+        </div>
+
+        <div id="scr-mouse" class="full-image-screen hidden">
+            <button class="back-main-link" onclick="resetWholeGame()"></button>
+        </div>
+
+        <div id="scr-credit" class="credit-screen-container hidden">
+            <img src="blank-bg.png" class="game-bg" alt="Credit Background">
+            
+            <div class="credit-content-wrapper">
+                <h2 class="credit-title">CREDIT</h2>
+                <div class="credit-decor-line"></div>
+
+                <div class="credit-text-body">
+                    <h3>A SPECIAL THANKS TO... YOU</h3>
+                    <p>Have you won yet, son? 🚬 jkd, hahaha</p>
+                    <p>Nếu bạn đã ấn vào đây thì tôi chỉ có đôi lời nhắn nhủ thôi</p>
+                    <p>Bạn luôn luôn rất tốt, nhớ rằng người ta vẫn nói:</p>
+                    <p class="credit-quote">“không có gì đẹp hơn dáng vẻ của một người đang cố gắng cả”</p>
+                    <p>Dù kết quả của trận đấu có ra sao thì bạn nên nhớ rằng:</p>
+                    <ul>
+                        <li>Thứ nhất bóng đá không nói trước được điều gì</li>
+                        <li>Thứ nhì bạn đã làm hết sức, giỏi lắm my fen</li>
+                    </ul>
+                    <p class="credit-highlight-cyan">You are doing great, babe, keep going o(*°▽°*)o</p>
+                </div>
+            </div>
+
+            <button class="back-to-menu-btn" onclick="resetWholeGame()">→ Back to the main screen</button>
+
+            <img src="cat.jfif" class="credit-cat-icon" alt="Cute Cat Cheerleader">
+        </div>
+    </div></div><script>
+        // Tự động chạy khi trang web tải xong để mở màn hình đầu tiên
+        window.addEventListener('DOMContentLoaded', () => {
+            openScreen('scr-headphone');
+        });
+        
+        let typewriterTimer;
+
+        const itemPool = [
+            { title: "- vật phẩm mới -", desc: "Một lá bùa cầu may mắn và bình an, trông khá xấu, hi vọng nó có tác dụng." },
+            { title: "- vật phẩm mới -", desc: "Đôi giày rách mũi gia truyền từ thời đá giải phường, sút auto lệch tâm nhưng tăng 200% độ lầy." },
+            { title: "- vật phẩm mới -", desc: "Bình nước thần kỳ của System, uống vào lập tức tăng 100% tự tin." }
+        ];
+
+        // HÀM ĐIỀU HƯỚNG MÀN HÌNH CHUẨN ĐÃ ĐƯỢC TỐI ƯU GỘP LẠI
+        function openScreen(screenId, bgPath) {
+            if(document.getElementById('scr-rotate')) document.getElementById('scr-rotate').classList.add('hidden');
+            if(document.getElementById('scr-headphone')) document.getElementById('scr-headphone').classList.add('hidden');
+            document.getElementById('scr-loading').classList.add('hidden');
+            document.getElementById('scr-menu').classList.add('hidden');
+            document.getElementById('scr-vn').classList.add('hidden');
+            document.getElementById('popup-gift').classList.add('hidden');
+            document.getElementById('scr-glitch').classList.add('hidden');
+            document.getElementById('scr-mouse').classList.add('hidden');
+            document.getElementById('scr-credit').classList.add('hidden');
+
+            document.getElementById(screenId).classList.remove('hidden');
+        }
+
+        function typeWriterEffect(targetId, text, speed = 25) {
+            const element = document.getElementById(targetId);
+            element.innerHTML = "";
+            clearInterval(typewriterTimer);
+            
+            let i = 0;
+            typewriterTimer = setInterval(() => {
+                if (i < text.length) {
+                    if (text.substr(i, 3) === "<b>") {
+                        element.innerHTML += "<span class='highlight'>"; i += 3;
+                    } else if (text.substr(i, 4) === "</b>") {
+                        element.innerHTML += "</span>"; i += 4;
+                    } else {
+                        element.innerHTML += text.charAt(i); i++;
+                    }
+                } else {
+                    clearInterval(typewriterTimer);
+                }
+            }, speed);
+        }
+
+        function triggerGameStart() {
+            openScreen('scr-vn'); 
+            // KHỞI ĐẦU: Đặt biểu cảm bình thường/tươi tỉnh khi vào trận
+            document.getElementById('kurisu-sprite')?.setAttribute('src', 'kurisu.png'); 
+            typeWriterEffect('dialogue-text', "Sẵn sàng để tạo ra <b>kỳ tích</b> chưa?");
+            
+            const choiceBox = document.getElementById('choices-box');
+            choiceBox.innerHTML = `
+                <button class="choice-item-btn" onclick="selectRoute('route1')">Nhà <span class="highlight-choice">vô địch</span> đang ở đây!!!</button>
+                <button class="choice-item-btn" onclick="selectRoute('route2')">Thú thực... tôi có chút lo sợ</button>
+            `;
+        }
+
+        function initGameAudio() {
+            const bgm = document.getElementById('game-bgm');
+            if (bgm) {
+                bgm.play().catch(err => console.log("Chưa bật được nhạc do: ", err));
+            }
+            openScreen('scr-menu');
+        }
+
+        function selectRoute(route) {
+            const choiceBox = document.getElementById('choices-box');
+            const sprite = document.getElementById('kurisu-sprite');
+            
+            if (route === 'route1') {
+                // NHÁNH 1: Tự tin -> Giữ nguyên ảnh tươi cười ban đầu (kurisu.png)
+                if (sprite) sprite.src = 'kurisu-3.png';
+                typeWriterEffect('dialogue-text', "Đó là tinh thần tôi muốn thấy! Ra sân và ghi 18 bàn cho tôi!");
+                choiceBox.innerHTML = `
+                    <button class="choice-item-btn" onclick="triggerGiftEvent()">Giá mà tôi có thêm chút may mắn</button>
+                    <button class="choice-item-btn" onclick="triggerGiftEvent()">Cảm ơn vì lời động viên</button>
+                `;
+            } else if (route === 'route2') {
+                // NHÁNH 2: Lo sợ -> Đổi sang biểu cảm lo lắng hoặc nghiêm túc (kurisu-2.png)
+                if (sprite) sprite.src = 'kurisu-2.png';
+                typeWriterEffect('dialogue-text', "Lo sợ sao? Cậu sợ hãi thứ gì?");
+                choiceBox.innerHTML = `
+                    <button class="choice-item-btn" onclick="selectRoute('route2_comfort')">Ừ thì, nếu như tôi không chiến thắng?</button>
+                    <button class="choice-item-btn" onclick="selectRoute('route2_comfort')">Hồi hộp trước khi thi đấu thôi</button>
+                `;
+            } else if (route === 'route2_comfort') {
+                // NHÁNH 2_COMFORT: An ủi -> Bạn có thể đổi sang một biểu cảm dịu dàng/mỉm cười ấm áp 
+                // Ở đây tôi tạm để file 'kurisu-3.png', nếu chưa có bạn đổi tên thành file ảnh bạn muốn nhé!
+                if (sprite) sprite.src = 'kurisu-3.png'; 
+                typeWriterEffect('dialogue-text', "*Thở dài* Cậu biết sao không? <b>Dũng cảm</b> không phải là không sợ hãi, <b>dũng cảm</b> là dù cho sợ hãi vẫn tiến về phía trước. Và cậu là một người <b>dũng cảm</b>, tôi hiểu rất rõ điều đó. Dù thế nào, cậu vẫn là nhà vô địch trong lòng tôi.");
+                choiceBox.innerHTML = `
+                    <button class="choice-item-btn" onclick="triggerGiftEvent()">Cảm ơn vì lời động viên</button>
+                `;
+            }
+        }
+
+        function triggerGiftEvent() {
+        // SỬA TẠI ĐÂY: Lấy thẻ sprite ra và ép nó chuyển sang biểu cảm cười rạng rỡ 'kurisu-happy.png'
+            const sprite = document.getElementById('kurisu-sprite');
+            if (sprite) sprite.src = 'kurisu-happy.png';
+            typeWriterEffect('dialogue-text', "Dù sao thì đây là một món quà nhỏ...");
+            document.getElementById('choices-box').innerHTML = ""; 
+
+            setTimeout(() => {
+                const randomItem = itemPool[Math.floor(Math.random() * itemPool.length)];
+                document.getElementById('item-title-bar').innerText = randomItem.title;
+                document.getElementById('item-desc-content').innerText = randomItem.desc;
+
+                document.getElementById('popup-gift').classList.remove('hidden');
+            }, 1000);
+        }
+
+        function resetWholeGame() {
+            clearInterval(typewriterTimer);
+            openScreen('scr-menu');
+        }
+    </script>
+</body>
+</html>
