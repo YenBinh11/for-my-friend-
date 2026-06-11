@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
+    <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-40PNFLBRH3"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-40PNFLBRH3');
+</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GAME OF THORNS</title>
@@ -392,7 +401,7 @@
             border: none;
             color: #c6f2eb;
             font-size: 0.6rem;
-            font-style: ital6ic;
+            font-style: italic;
             letter-spacing: 1px;
             cursor: pointer;
             z-index: 30;
@@ -478,7 +487,7 @@
         <div id="popup-gift" class="item-popup-overlay hidden">
             <div class="custom-item-card">
                 <div class="item-image-area">
-                    <img src="Omomari.png" alt="Item">
+                    <img id="item-image-display" src="Omomari.png" alt="Item">
                 </div>
                 <div id="item-title-bar" class="item-name-bar">- vật phẩm mới -</div>
                 <div class="item-desc-area">
@@ -523,7 +532,10 @@
 
             <img src="cat.jfif" class="credit-cat-icon" alt="Cute Cat Cheerleader">
         </div>
-    </div></div><script>
+    </div>
+</div>
+
+    <script>
         // Tự động chạy khi trang web tải xong để mở màn hình đầu tiên
         window.addEventListener('DOMContentLoaded', () => {
             openScreen('scr-headphone');
@@ -531,10 +543,23 @@
         
         let typewriterTimer;
 
+        // SỬA TẠI ĐÂY: Bổ sung thêm thuộc tính 'image' đi kèm chính xác với từng vật phẩm
         const itemPool = [
-            { title: "- vật phẩm mới -", desc: "Một lá bùa cầu may mắn và bình an, trông khá xấu, hi vọng nó có tác dụng." },
-            { title: "- vật phẩm mới -", desc: "Đôi giày rách mũi gia truyền từ thời đá giải phường, sút auto lệch tâm nhưng tăng 200% độ lầy." },
-            { title: "- vật phẩm mới -", desc: "Bình nước thần kỳ của System, uống vào lập tức tăng 100% tự tin." }
+            { 
+                title: "- vật phẩm mới -", 
+                image: "Omomari.png", 
+                desc: "Một lá bùa cầu may mắn và bình an, trông khá xấu, hi vọng nó có tác dụng." 
+            },
+            { 
+                title: "- vật phẩm mới -", 
+                image: "giay_rach.png", /* Thay đổi tên file ảnh giày thực tế của bạn ở đây */
+                desc: "Đôi giày rách mũi gia truyền từ thời đá giải phường, sút auto lệch tâm nhưng tăng 200% độ lầy." 
+            },
+            { 
+                title: "- vật phẩm mới -", 
+                image: "binh_nuoc.png", /* Thay đổi tên file ảnh bình nước thực tế của bạn ở đây */
+                desc: "Bình nước thần kỳ của System, uống vào lập tức tăng 100% tự tin." 
+            }
         ];
 
         // HÀM ĐIỀU HƯỚNG MÀN HÌNH CHUẨN ĐÃ ĐƯỢC TỐI ƯU GỘP LẠI
@@ -616,7 +641,6 @@
                 `;
             } else if (route === 'route2_comfort') {
                 // NHÁNH 2_COMFORT: An ủi -> Bạn có thể đổi sang một biểu cảm dịu dàng/mỉm cười ấm áp 
-                // Ở đây tôi tạm để file 'kurisu-3.png', nếu chưa có bạn đổi tên thành file ảnh bạn muốn nhé!
                 if (sprite) sprite.src = 'kurisu-3.png'; 
                 typeWriterEffect('dialogue-text', "*Thở dài* Cậu biết sao không? <b>Dũng cảm</b> không phải là không sợ hãi, <b>dũng cảm</b> là dù cho sợ hãi vẫn tiến về phía trước. Và cậu là một người <b>dũng cảm</b>, tôi hiểu rất rõ điều đó. Dù thế nào, cậu vẫn là nhà vô địch trong lòng tôi.");
                 choiceBox.innerHTML = `
@@ -626,16 +650,25 @@
         }
 
         function triggerGiftEvent() {
-        // SỬA TẠI ĐÂY: Lấy thẻ sprite ra và ép nó chuyển sang biểu cảm cười rạng rỡ 'kurisu-happy.png'
             const sprite = document.getElementById('kurisu-sprite');
             if (sprite) sprite.src = 'kurisu-happy.png';
             typeWriterEffect('dialogue-text', "Dù sao thì đây là một món quà nhỏ...");
             document.getElementById('choices-box').innerHTML = ""; 
 
             setTimeout(() => {
+                // Chọn ngẫu nhiên một item hoàn chỉnh từ pool
                 const randomItem = itemPool[Math.floor(Math.random() * itemPool.length)];
+                
+                // Cập nhật đồng bộ: Tiêu đề, Mô tả, và Hình ảnh
                 document.getElementById('item-title-bar').innerText = randomItem.title;
                 document.getElementById('item-desc-content').innerText = randomItem.desc;
+                
+                // SỬA TẠI ĐÂY: Thay đổi thuộc tính src của ảnh dựa theo item được chọn ngẫu nhiên
+                const itemImg = document.getElementById('item-image-display');
+                if (itemImg) {
+                    itemImg.src = randomItem.image;
+                    itemImg.alt = randomItem.desc; // Cập nhật alt cho đúng ngữ cảnh luôn
+                }
 
                 document.getElementById('popup-gift').classList.remove('hidden');
             }, 1000);
